@@ -1,9 +1,13 @@
 ﻿using Business.Abstract;
 using Business.Constants;
+using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Validation;
+using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.DTOs;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -19,25 +23,46 @@ namespace Business.Concrete
             _productDal = productDal;
         }
 
+        [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
-            // business codes
-            if (product.ProductName.Length < 2)
-            {
-                //magic strings
-                return new ErrorResult(Messages.ProductNameInvalid);
-            }
+            // business codes (iş kodu)
+            // validation codes (doğrulama kodu)
+            // gönderilen nesnenin iş kodumuza uygun olup olmadığını kontrol etmeye doğrulama kodu denir.
+
+            //ValidationTool.Validate(new ProductValidator(), product);
+            //loglama
+            //cacheremove
+            //performance
+            //transaction
+            //yetkilendirme(authorization)
+
+
+            // Attribute kullanarak aşağıdaki kod bloğundan kurtulmuş oluyoruz.
+
+            // var context = new ValidationContext<Product>(product);
+            // ProductValidator productValidator = new ProductValidator();
+            // var result = productValidator.Validate(context);
+            // if(!result.IsValid){
+            //      throw new validationException(result.Errors);
+            // }
+            // else{
+            //      _productDal.Add(product);
+            // }
+
+            //ValidationTool.Validate(new ProductValidator(), product);
+
             _productDal.Add(product);
             return new SuccessResult(Messages.ProductAdded);
         }
 
         public IDataResult<List<Product>> GetAll()
         {
-            if(DateTime.Now.Hour == 1)
+            if (DateTime.Now.Hour == 1)
             {
                 return new ErrorDataResult<List<Product>>(Messages.MaintenanceTime);
             }
-            return new SuccessDataResult<List<Product>>(_productDal.GetAll(),Messages.ProductsListed);
+            return new SuccessDataResult<List<Product>>(_productDal.GetAll(), Messages.ProductsListed);
         }
 
         public IDataResult<List<Product>> GetAllByCategoryId(int categoryId)
@@ -57,7 +82,7 @@ namespace Business.Concrete
 
         public IDataResult<List<ProductDetailDto>> GetProductDetails()
         {
-            return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails(),Messages.ProductsListed);
+            return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails(), Messages.ProductsListed);
         }
     }
 }
